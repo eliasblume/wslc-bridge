@@ -119,10 +119,18 @@ func (h *handler) inspectContainer(w http.ResponseWriter, r *http.Request, path 
 		writeError(w, http.StatusBadGateway, err.Error())
 		return
 	}
+	var inspected struct {
+		ID string `json:"Id"`
+	}
+	if err := json.Unmarshal(body, &inspected); err != nil {
+		writeError(w, http.StatusBadGateway, "guest Docker returned malformed container inspect JSON")
+		return
+	}
+	containerID := normalizeContainerID(inspected.ID)
 	ports := make(map[string][]native.PortBinding)
 	if items, listErr := h.native.ListContainers(r.Context()); listErr == nil {
 		for _, item := range items {
-			if normalizeContainerID(item.ID) == normalizeContainerID(id) {
+			if normalizeContainerID(item.ID) == containerID {
 				ports = item.Ports
 				break
 			}

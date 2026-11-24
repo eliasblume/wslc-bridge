@@ -74,7 +74,7 @@ type PortBinding struct {
 }
 
 func (c *client) ListContainers(ctx context.Context) ([]ContainerListItem, error) {
-	result, err := c.RunWithTimeout(ctx, 15*time.Second, "container", "list", "--all", "--format", "json")
+	result, err := c.RunWithTimeout(ctx, 15*time.Second, "container", "list", "--all", "--no-trunc", "--format", "json")
 	if err != nil {
 		return nil, err
 	}

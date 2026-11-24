@@ -143,13 +143,16 @@ func TestDecodeContainerListSupportsArrayAndJSONLines(t *testing.T) {
 
 func TestListContainersDecodesCommandOutput(t *testing.T) {
 	t.Parallel()
-	runner := &fakeRunner{run: respondWith("{\"ID\":\"container-a\",\"State\":\"running\",\"Ports\":\"127.0.0.1:49152->80/tcp\"}\n{\"ID\":\"container-b\",\"State\":\"exited\",\"Ports\":\"\"}\n")}
+	const fullID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	output := `{"ID":"` + fullID + `","State":"running","Ports":"127.0.0.1:49152->80/tcp"}
+{"ID":"container-b","State":"exited","Ports":""}`
+	runner := &fakeRunner{run: respondWith(output)}
 	items, err := newClient(runner).ListContainers(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertCalls(t, runner, []string{"container", "list", "--all", "--format", "json"})
-	if len(items) != 2 || items[0].ID != "container-a" || items[0].State != "running" {
+	assertCalls(t, runner, []string{"container", "list", "--all", "--no-trunc", "--format", "json"})
+	if len(items) != 2 || items[0].ID != fullID || items[0].State != "running" {
 		t.Fatalf("ListContainers() = %#v", items)
 	}
 	binding := items[0].Ports["80/tcp"][0]

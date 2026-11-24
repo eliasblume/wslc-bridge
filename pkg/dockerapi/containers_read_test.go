@@ -74,7 +74,7 @@ func TestInspectContainerUsesGuestBodyAndWSLCListPorts(t *testing.T) {
 
 	guestBody := `{"Id":"container-id","Config":{"Image":"nginx:alpine"},"State":{"Running":true},"NetworkSettings":{"Ports":{"80/tcp":[{"HostIp":"172.18.0.1","HostPort":"8080"}]}}}`
 	guestClient := fakeGuestClient(func(request *http.Request) (*http.Response, error) {
-		if request.URL.Path != "/containers/container-id/json" {
+		if request.URL.Path != "/containers/test-container-name/json" {
 			return nil, errors.New("unexpected guest request path: " + request.URL.Path)
 		}
 		return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(guestBody))}, nil
@@ -85,7 +85,7 @@ func TestInspectContainerUsesGuestBodyAndWSLCListPorts(t *testing.T) {
 	}}}
 	handler := NewHandler(nativeRuntime, guestClient)
 	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/containers/container-id/json", nil))
+	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/containers/test-container-name/json", nil))
 	if response.Code != http.StatusOK {
 		t.Fatalf("inspect returned status %d: %s", response.Code, response.Body.String())
 	}
